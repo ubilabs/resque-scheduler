@@ -1,8 +1,11 @@
 require 'rubygems'
 require 'resque'
-require 'resque_scheduler/version'
+require 'resque/server'
 require 'resque/scheduler'
 require 'resque_scheduler/plugin'
+require 'resque/scheduler_daemon'
+require 'resque_scheduler/server'
+require 'resque_scheduler/version'
 
 module ResqueScheduler
 

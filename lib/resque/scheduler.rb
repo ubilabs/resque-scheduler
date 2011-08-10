@@ -12,10 +12,16 @@ module Resque
       # If true, logs more stuff...
       attr_accessor :verbose
 
+      # Delay between rounds of work (seconds)
+      attr_accessor :delay
+
       # If set, produces no output
       attr_accessor :mute
 
-      # If set, will try to update the schulde in the loop
+      # If set, will use it to log, otherwise stdout
+      attr_accessor :logger
+
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
       # Amount of time in seconds to sleep between polls of the delayed
@@ -273,7 +279,7 @@ module Resque
       # Sleeps and returns true
       def poll_sleep
         @sleeping = true
-        handle_shutdown { sleep poll_sleep_amount }
+        handle_shutdown { sleep @delay || 5 }
         @sleeping = false
         true
       end
@@ -285,12 +291,21 @@ module Resque
       end
 
       def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+        return if mute
+        if @logger
+          @logger.info "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        else
+          puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        end
       end
 
       def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+        return unless @verbose
+        if @logger
+          @logger.debug "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        else
+          log!(msg)
+        end
       end
 
       def procline(string)
